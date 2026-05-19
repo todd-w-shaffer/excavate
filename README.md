@@ -41,7 +41,7 @@ Restart Claude Code, then in any git repo:
 ```
 /excavate src/auth/middleware.ts
 /excavate computeCap
-/excavate 89e72bf
+/excavate a1b2c3d
 ```
 
 ## What you'll see
