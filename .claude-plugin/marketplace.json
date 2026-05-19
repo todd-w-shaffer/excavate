@@ -9,7 +9,7 @@
     {
       "name": "excavate",
       "description": "Reconstruct the why behind a file, symbol, or commit by reading git history, commit bodies, and CLAUDE.md/README evolution. Pairs with LSP plugins.",
-      "source": "./",
+      "source": "./plugins/excavate",
       "category": "exploration"
     }
   ]

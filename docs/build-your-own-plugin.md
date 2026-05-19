@@ -91,7 +91,7 @@ printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":
 
 That's the whole hook. ~10 lines of bash.
 
-**`skills/preflight/SKILL.md`** and **`agents/deploy-checker.md`** follow the same shape as excavate's — skill is a thin dispatcher; agent does the work with `Bash`, `Read`, `Grep`. Look at `excavate/skills/excavate/SKILL.md` and `excavate/agents/archaeologist.md` for templates.
+**`skills/preflight/SKILL.md`** and **`agents/deploy-checker.md`** follow the same shape as excavate's — skill is a thin dispatcher; agent does the work with `Bash`, `Read`, `Grep`. Look at `plugins/excavate/skills/excavate/SKILL.md` and `plugins/excavate/agents/archaeologist.md` in this repo for templates.
 
 ## Tips that aren't obvious from the docs
 

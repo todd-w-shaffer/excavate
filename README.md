@@ -95,19 +95,21 @@ The hook is the composability story. When you install excavate alongside `gopls-
 
 ```
 .claude-plugin/
-  plugin.json          # plugin manifest
   marketplace.json     # self-marketplace for local install
-agents/
-  archaeologist.md     # the agent prompt
-skills/
-  excavate/SKILL.md    # the /excavate skill
-hooks/
-  hooks.json           # PostToolUse on LSP
-scripts/
-  provenance-digest.sh # the hook script
-  lib.sh               # shared helpers (JSON escape, repo-root lookup)
+plugins/excavate/      # the plugin
+  .claude-plugin/
+    plugin.json        # plugin manifest
+  agents/
+    archaeologist.md   # the agent prompt
+  skills/
+    excavate/SKILL.md  # the /excavate skill
+  hooks/
+    hooks.json         # PostToolUse on LSP
+  scripts/
+    provenance-digest.sh # the hook script
+    lib.sh             # shared helpers (JSON escape, repo-root lookup)
 docs/
-  build-your-own-plugin.md  # one-page guide
+  build-your-own-plugin.md  # one-page guide for peers
 ```
 
 ## What I'd do with more time
