@@ -1,0 +1,16 @@
+{
+  "name": "archaeology",
+  "description": "Code archaeology tooling for Claude Code",
+  "owner": {
+    "name": "Todd Shaffer",
+    "url": "https://github.com/todd-w-shaffer"
+  },
+  "plugins": [
+    {
+      "name": "excavate",
+      "description": "Reconstruct the why behind a file, symbol, or commit by reading git history, commit bodies, and CLAUDE.md/README evolution. Pairs with LSP plugins.",
+      "source": "./",
+      "category": "exploration"
+    }
+  ]
+}
