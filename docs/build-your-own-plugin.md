@@ -45,18 +45,17 @@ hooks/hooks.json
 scripts/nudge.sh
 ```
 
-**`plugin.json`** — the manifest:
+**`plugin.json`** — the manifest. Keep it minimal; the conventional dirs (`agents/`, `skills/`, `commands/`) and `hooks/hooks.json` are auto-discovered from the plugin root:
 
 ```json
 {
   "name": "preflight",
   "version": "0.1.0",
-  "description": "Pre-deploy checklist for solo devs.",
-  "agents": "./agents/",
-  "skills": "./skills/",
-  "hooks": "./hooks/hooks.json"
+  "description": "Pre-deploy checklist for solo devs."
 }
 ```
+
+The schema does accept explicit declarations for these fields, but the strings must point at *files* (`"./agents/foo.md"`), not directories — and `hooks` declared in the manifest is for *additional* hooks layered on top of the auto-loaded `hooks/hooks.json`, not the canonical one. Easiest to just let auto-discovery do its job.
 
 **`hooks/hooks.json`** — the nudge hook:
 
