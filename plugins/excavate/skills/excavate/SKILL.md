@@ -5,7 +5,7 @@ description: Code archaeology — reconstruct the why behind a file, symbol, com
 
 # Excavate
 
-The user wants the *why* behind some code, not the *what*. Your job is to dispatch the `archaeologist` agent against the target they named and return its report verbatim.
+The user wants the *why* behind some code, not the *what*. Your job is to dispatch the `excavate:archaeologist` agent against the target they named and return its report verbatim.
 
 ## Argument
 
@@ -30,7 +30,7 @@ Working directory: <pwd>
 Produce a one-page markdown report following your output format.
 ```
 
-Use the `Agent` tool with `subagent_type: "archaeologist"`. Do not try to do the archaeology yourself — the agent has the focused prompt and the right tool surface.
+Use the `Agent` tool with `subagent_type: "excavate:archaeologist"` (plugin-shipped agents are namespaced as `<plugin>:<agent-name>`). Do not try to do the archaeology yourself — the agent has the focused prompt and the right tool surface.
 
 ## After the agent returns
 
