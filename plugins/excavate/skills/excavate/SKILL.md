@@ -34,6 +34,13 @@ Use the `Agent` tool with `subagent_type: "excavate:archaeologist"` (plugin-ship
 
 ## After the agent returns
 
-Return the agent's report to the user verbatim, no preamble or commentary. The report is the deliverable.
+**This step is non-optional.** The Agent tool's output collapses to a `Done` block in the UI — the report inside it is hidden from the user unless they expand the block. To make the report visible, you must echo it.
 
-If the agent reports it couldn't find a git repo, the target doesn't exist, or LSP couldn't resolve a symbol — surface that error directly. Don't try a second guess unless the user asks.
+Immediately after the Agent tool call returns:
+
+1. Do **not** call any other tool.
+2. Write your next assistant message containing the agent's full markdown report, copy-pasted verbatim.
+3. Do not add a preamble like "Here is the report" or "The archaeologist found:". Do not summarize. Do not editorialize.
+4. Your assistant message IS the report. Nothing before it, nothing after it.
+
+If the agent reports it couldn't find a git repo, the target doesn't exist, or LSP couldn't resolve a symbol — paste that error message as your response, same rule. Don't try a second guess unless the user asks.
