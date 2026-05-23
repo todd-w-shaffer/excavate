@@ -7,8 +7,5 @@
     "url": "https://github.com/todd-w-shaffer"
   },
   "license": "MIT",
-  "keywords": ["archaeology", "git", "history", "onboarding", "provenance", "lsp"],
-  "agents": "./agents/",
-  "skills": "./skills/",
-  "hooks": "./hooks/hooks.json"
+  "keywords": ["archaeology", "git", "history", "onboarding", "provenance", "lsp"]
 }
