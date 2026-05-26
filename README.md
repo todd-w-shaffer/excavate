@@ -77,8 +77,8 @@ Three pieces:
 
 | Piece | What it does |
 |------|-----|
-| `archaeologist` agent | Runs `git log --follow -p`, `git blame -w -C -C`, scans CLAUDE.md/README evolution, opportunistically calls `gh`. Synthesizes into the report. |
-| `/excavate` skill | Thin invocation layer. Parses the argument (path / symbol / SHA / PR URL) and dispatches to the archaeologist. |
+| `/excavate` skill | The user-facing entry point. Runs the archaeology protocol inline — `git log --follow -p`, `git blame -w -C -C`, CLAUDE.md/README evolution, opportunistic `gh` — and writes the report as the assistant's response. Parses path / symbol / SHA / PR URL arguments. |
+| `archaeologist` agent | The same protocol packaged as a subagent. Available for explicit dispatch (`Agent` tool with `subagent_type: "excavate:archaeologist"`) when you want subagent isolation. The `/excavate` slash command does not route through it. |
 | `PostToolUse` hook on `LSP` | Pure-bash digest. When LSP returns a location, attaches the file's commit count, origin commit, and last 3 commits. No jq, no Python. |
 
 The hook is the composability story. Installed alongside `gopls-lsp` or a TypeScript language-server plugin, every LSP query gets enriched with provenance for free — even when you're not running `/excavate` explicitly. The plugin earns its keep without adding surface area in the way.
