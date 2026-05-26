@@ -53,7 +53,7 @@ Return structured findings using the section headers in your protocol.
 Do not write a narrative brief — that's my job.
 ```
 
-The agent returns findings as markdown sections (`## resolved_window`, `## activity_by_directory`, `## active_contributors`, `## significant_commits`, `## dormant_areas`, `## doc_evolution`, `## investigation_notes`). Read its full output before synthesizing.
+The agent returns findings as markdown sections (`## resolved_window`, `## activity_by_directory`, `## top_files`, `## active_contributors`, `## significant_commits`, `## dormant_areas`, `## doc_evolution`, `## investigation_notes`). Read its full output before synthesizing.
 
 ## Synthesize
 
@@ -62,6 +62,7 @@ Take the agent's findings and write the brief below as your assistant message. T
 Specifically:
 
 - **Where the work happened** — from `activity_by_directory`. Top 3–6 directories. A simple ASCII bar (proportional to commit count) is fine; or just `<dir> N commits (M authors)` lines.
+- **Hot files** — from `top_files`. The 3–5 most-touched files in the window — the ones everyone keeps coming back to. One line each: `<path> — N commits`. Skip the section entirely if `top_files` is `(none)` or the list adds no signal beyond the directory view (e.g., every top file is in the top directory).
 - **Themes** — pick 2–4 from `significant_commits`. Not all 8 candidates are real themes; filter out mechanical commits (renames, version bumps, dependency updates). Group by month or by topic. Each entry: month/topic, one-line description, key SHAs.
 - **Active contributors** — from `active_contributors`. Top 3–5 with their focus area.
 - **Stable / dormant** — from `dormant_areas`. 2–4 entries. Frame each as "settled mature code" or "potentially abandoned" — if you can't tell, say so in Open questions rather than guess.
@@ -86,6 +87,10 @@ Markdown, ≤ one page. Cite SHAs inline so the user can drill in via `/excavate
 <dir>  █████    N commits (M authors)
 <dir>  ██       N commits (M authors)
 (3–6 lines)
+
+## Hot files
+- `<path>` — N commits
+(3–5 lines; or omit the section if it adds no signal)
 
 ## Themes
 - **<month or topic>** — one-line description (key SHAs: `abc123`, `def456`)

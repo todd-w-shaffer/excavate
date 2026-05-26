@@ -2,6 +2,8 @@
 
 A full report from `/excavate scripts/gate.sh` run against [coolant](https://github.com/todd-w-shaffer/coolant). Solo-contributor repo, no PRs to fetch — the agent works entirely from git history and commit bodies.
 
+> Excavate ships two slash commands. This is `/excavate` — file-scoped depth (one file's "why"). The repo-scoped breadth view is `/timeline` (where the work has been happening across the whole codebase). The SHAs cited below can be drilled into via `/excavate <sha>` — that's the bridge between the two zoom levels.
+
 ---
 
 # Provenance: scripts/gate.sh

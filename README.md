@@ -88,7 +88,7 @@ Five pieces, organized as two agent-collects / skill-synthesizes pairs plus a ho
 | `archaeologist` agent | The collector for `/excavate`. Mines `git log --follow -p`, `git blame -w -C -C`, CLAUDE.md/README evolution, opportunistic `gh` — and returns structured findings (not prose). The skill writes the story. |
 | `/timeline` skill | The user-facing entry point for repo-level chronology. Accepts a window (`30d`, `90d`, `6mo`, `1y`, `all`), translates it to a git-ready form, dispatches to `excavate:timeline-collector`, then synthesizes the brief. |
 | `timeline-collector` agent | The collector for `/timeline`. Mines activity-by-directory, top files, contributor breakdown, significant commits, dormant areas, and doc evolution — returns structured findings only. |
-| `PostToolUse` hook on `LSP` | Pure-bash digest. When LSP returns a location, attaches the file's commit count, origin commit, and last 3 commits. No jq, no Python. |
+| `PostToolUse` hook on `LSP` | Pure-bash digest. When LSP returns a location, attaches the file's commit count, origin commit, and last 3 commits. No jq, no Python. Only composes with symbol-scoped flows (the `archaeologist` agent and any LSP plugin you have installed) — `/timeline` is commit-scoped and doesn't touch LSP, so the hook is silent for it by design. |
 
 Both slash commands use the same shape — **agent collects, skill synthesizes**. The agent does the noisy git mining in a clean subagent context (50+ tool calls collapsed into one `Done` block). The skill does the judgment work (which inflections are real, which commits are themes, what dormancy means) and the synthesis IS the parent's response, so the deliverable surfaces naturally.
 

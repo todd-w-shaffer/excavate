@@ -25,6 +25,7 @@ Run the mining steps below. Each populates a section of your output. Skip a step
 - Use `tformat:` (not `format:`) so the last record ends with a newline.
 - Use `%x1f` (ASCII unit separator) as the field delimiter — pipes inside commit subjects, bodies, and author names would otherwise corrupt parsing.
 - All dates render as `--date=short` (YYYY-MM-DD).
+- SHAs render as `%h` (git's abbreviated form, typically 7–11 chars depending on repo size). The caller cites these inline so the user can drill in with `/excavate <sha>`, which accepts any prefix of 7+ chars — `%h` satisfies that contract.
 
 ### 1. Activity by directory
 

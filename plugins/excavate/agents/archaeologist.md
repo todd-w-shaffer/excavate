@@ -119,4 +119,5 @@ status: <gh-available | no-gh-auth | no-github-remote | no-prs-found>
 - **No narrative.** Do not write paragraphs explaining what changed. Return facts; the caller writes the story.
 - **Don't editorialize.** No "this was a great refactor" or "looks like tech debt." Just SHAs, dates, subjects, bodies.
 - **State gaps.** If git wouldn't follow a rename, say so in `investigation_notes`. If gh failed, say so in `gh_context`. Silence about what you couldn't find misleads the caller.
+- **Never omit a header.** Empty sections always get a `(none)` or `(unavailable: <reason>)` placeholder. The caller parses by header name — a missing header silently drops that section from the synthesized report.
 - **Cap output.** Aim for under ~80 lines of findings. The caller doesn't want a transcript; it wants the load-bearing data points.

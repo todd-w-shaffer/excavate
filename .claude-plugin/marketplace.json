@@ -8,7 +8,7 @@
   "plugins": [
     {
       "name": "excavate",
-      "description": "Reconstruct the why behind a file, symbol, or commit by reading git history, commit bodies, and CLAUDE.md/README evolution. Pairs with LSP plugins.",
+      "description": "Code archaeology at two zoom levels. /excavate reconstructs the why behind a file, symbol, or commit. /timeline produces a repo-level chronology of where the work has been happening, who's contributing, and what's gone dormant. Pairs with LSP plugins.",
       "source": "./plugins/excavate",
       "category": "exploration"
     }
