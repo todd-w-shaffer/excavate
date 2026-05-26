@@ -1,14 +1,17 @@
 # excavate
 
-Code archaeology for Claude Code — reconstructs the *why* behind a file, symbol, or commit. Pairs with LSP plugins (gopls-lsp, ts-lsp, etc.) to add a historical dimension to symbol navigation.
+Code archaeology for Claude Code — reconstructs the *why* behind a file, symbol, or commit, and the chronology of a repo. Pairs with LSP plugins (gopls-lsp, ts-lsp, etc.) to add a historical dimension to symbol navigation.
 
 ## What it does
 
-Language servers tell you *what* the code is — where a symbol is defined, who calls it, what its type is. They don't tell you *why* it exists in this shape. Excavate fills that gap.
+Language servers tell you *what* the code is — where a symbol is defined, who calls it, what its type is. They don't tell you *why* it exists in this shape, or what's been happening in the repo lately. Excavate fills both gaps with two slash commands at different zoom levels:
 
-Type `/excavate <path>` (or a symbol, or a commit SHA) and you get a one-page provenance report: when this came into the codebase and on what stated rationale, the inflection points that bent its shape, what's been changing lately, and what history *can't* tell you. Every claim cites a SHA so you can verify.
+- **`/excavate <path>`** (or a symbol, or a commit SHA) — file-scoped depth. One-page provenance report: when this came into the codebase and on what stated rationale, the inflection points that bent its shape, what's been changing lately, and what history *can't* tell you.
+- **`/timeline [window]`** — repo-scoped breadth. One-page chronology: where the work has been happening, who's contributing, the themes, what's gone dormant. Useful in your first 30 days at a new team, or returning to your own project after months away.
 
-It also installs a `PostToolUse` hook on the `LSP` tool. So when the agent uses any LSP plugin to resolve a definition or find references, excavate quietly attaches a 4-line git digest to the LSP response. The agent sees both the *what* and a head start on the *why* — without an extra tool round-trip.
+Both commands cite SHAs so you can drill in with `/excavate <sha>`.
+
+Excavate also installs a `PostToolUse` hook on the `LSP` tool. When the agent uses any LSP plugin to resolve a definition or find references, excavate quietly attaches a 4-line git digest to the LSP response. The agent sees both the *what* and a head start on the *why* — without an extra tool round-trip.
 
 Works on any git repo. Opportunistically uses `gh` for PR/issue context when the remote is GitHub and you're logged in.
 
@@ -42,6 +45,10 @@ Restart Claude Code, then in any git repo:
 /excavate src/auth/middleware.ts
 /excavate computeCap
 /excavate a1b2c3d
+
+/timeline             # last 90 days (default)
+/timeline 30d         # last 30 days
+/timeline all         # full history
 ```
 
 ## What you'll see
@@ -73,13 +80,17 @@ See [`docs/example.md`](docs/example.md) for a full report from a real run.
 
 ## How it works
 
-Three pieces:
+Five pieces, organized as two agent-collects / skill-synthesizes pairs plus a hook:
 
 | Piece | What it does |
 |------|-----|
-| `/excavate` skill | The user-facing entry point. Runs the archaeology protocol inline — `git log --follow -p`, `git blame -w -C -C`, CLAUDE.md/README evolution, opportunistic `gh` — and writes the report as the assistant's response. Parses path / symbol / SHA / PR URL arguments. |
-| `archaeologist` agent | The same protocol packaged as a subagent. Available for explicit dispatch (`Agent` tool with `subagent_type: "excavate:archaeologist"`) when you want subagent isolation. The `/excavate` slash command does not route through it. |
+| `/excavate` skill | The user-facing entry point for file-level archaeology. Parses path / symbol / SHA / PR URL arguments, dispatches to `excavate:archaeologist`, then synthesizes the structured findings into a one-page provenance report as the assistant's response. |
+| `archaeologist` agent | The collector for `/excavate`. Mines `git log --follow -p`, `git blame -w -C -C`, CLAUDE.md/README evolution, opportunistic `gh` — and returns structured findings (not prose). The skill writes the story. |
+| `/timeline` skill | The user-facing entry point for repo-level chronology. Accepts a window (`30d`, `90d`, `6mo`, `1y`, `all`), translates it to a git-ready form, dispatches to `excavate:timeline-collector`, then synthesizes the brief. |
+| `timeline-collector` agent | The collector for `/timeline`. Mines activity-by-directory, top files, contributor breakdown, significant commits, dormant areas, and doc evolution — returns structured findings only. |
 | `PostToolUse` hook on `LSP` | Pure-bash digest. When LSP returns a location, attaches the file's commit count, origin commit, and last 3 commits. No jq, no Python. |
+
+Both slash commands use the same shape — **agent collects, skill synthesizes**. The agent does the noisy git mining in a clean subagent context (50+ tool calls collapsed into one `Done` block). The skill does the judgment work (which inflections are real, which commits are themes, what dormancy means) and the synthesis IS the parent's response, so the deliverable surfaces naturally.
 
 The hook is the composability story. Installed alongside `gopls-lsp` or a TypeScript language-server plugin, every LSP query gets enriched with provenance for free — even when you're not running `/excavate` explicitly. The plugin earns its keep without adding surface area in the way.
 
@@ -99,9 +110,11 @@ plugins/excavate/      # the plugin
   .claude-plugin/
     plugin.json        # plugin manifest
   agents/
-    archaeologist.md   # the agent prompt
+    archaeologist.md       # collector for /excavate
+    timeline-collector.md  # collector for /timeline
   skills/
     excavate/SKILL.md  # the /excavate skill
+    timeline/SKILL.md  # the /timeline skill
   hooks/
     hooks.json         # PostToolUse on LSP
   scripts/
@@ -116,7 +129,7 @@ docs/
 
 - Add a `--diff <sha>` mode to walk multiple file histories in concert (useful for excavating a refactor that touched many files).
 - Cache LSP→provenance lookups within a session so the hook doesn't re-run on repeated queries against the same file.
-- A second skill `/timeline <since>` that produces a repo-level chronology — what shipped when, what landed before/after a given commit — for the "I joined two months ago, catch me up" case.
+- A `refactor-archaeologist` mode that takes a glob and produces a single provenance story across many files — the cross-file complement to `/excavate`'s single-file depth.
 
 ## License
 

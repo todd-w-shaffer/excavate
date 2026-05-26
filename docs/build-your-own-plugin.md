@@ -9,7 +9,7 @@ A Claude Code plugin is just a directory with a manifest and any subset of four 
 | Piece | Use it when |
 |---|---|
 | **Agent** | You want Claude to behave like a *specialist* — focused prompt, narrow tool surface, custom output shape. Lives in `agents/<name>.md`. |
-| **Skill** | You need an *entry point* — a slash command or natural-language trigger. Lives in `skills/<name>/SKILL.md`. Can be thin (dispatches to an agent) or thick (runs the work inline). Inline is more reliable when the deliverable is the skill's response, since agent output collapses into a `Done` block that the parent rarely echoes back. |
+| **Skill** | You need an *entry point* — a slash command or natural-language trigger. Lives in `skills/<name>/SKILL.md`. The working pattern for substantive deliverables is **agent-collects / skill-synthesizes**: the skill dispatches to an agent that returns *structured findings* (not prose), then the skill synthesizes the narrative as the parent's response. Inline-in-skill works too but only for short work (under ~10 tool calls) — past that you want the subagent isolation. Don't have the agent produce prose and ask the parent to echo: the parent skips the echo and the deliverable hides behind the `Done` block. |
 | **Hook** | You want to *enrich or gate* existing behavior — react when a tool is called, inject context, or block dangerous actions. Lives in `hooks/hooks.json` + a script. |
 | **MCP server** | You're exposing *your own system* (an internal API, a private knowledge base) where shell + CLI isn't enough. Don't reach for it just to wrap a CLI — `gh`, `kubectl`, etc. are already token-efficient. |
 
@@ -90,7 +90,7 @@ printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","additionalContext":
 
 That's the whole hook. ~10 lines of bash.
 
-**`skills/preflight/SKILL.md`** and **`agents/deploy-checker.md`** follow excavate's structure — a skill body that carries the protocol (inline) and an agent file that packages the same protocol as a dispatchable subagent. The skill is the primary path: it runs `git status`, the test command, env-diff sniffing, etc. directly so its summary surfaces as the assistant's response. Look at `plugins/excavate/skills/excavate/SKILL.md` and `plugins/excavate/agents/archaeologist.md` in this repo for templates.
+**`skills/preflight/SKILL.md`** and **`agents/deploy-checker.md`** follow excavate's structure — the skill dispatches to the agent for the noisy work (a clean subagent context for `git status`, test invocation, env-diff sniffing) and the agent returns *structured findings* like `## uncommitted_migrations` and `## env_drift`. The skill then synthesizes those findings into the verdict as its assistant message. Look at `plugins/excavate/skills/excavate/SKILL.md` + `plugins/excavate/agents/archaeologist.md` (file-scoped archaeology) and `plugins/excavate/skills/timeline/SKILL.md` + `plugins/excavate/agents/timeline-collector.md` (repo-scoped chronology) in this repo — same pattern, two zoom levels, useful as side-by-side templates.
 
 ## Tips that aren't obvious from the docs
 
