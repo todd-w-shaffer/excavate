@@ -1,6 +1,6 @@
 {
   "name": "excavate",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "Code archaeology for Claude Code — reconstructs the why behind a file, symbol, or commit. Pairs with LSP plugins (gopls-lsp, etc.) to add a historical dimension to symbol navigation.",
   "author": {
     "name": "Todd Shaffer",

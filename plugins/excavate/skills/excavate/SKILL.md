@@ -5,60 +5,54 @@ description: Code archaeology — reconstruct the why behind a file, symbol, com
 
 # Excavate
 
-The user wants the *why* behind some code, not the *what*. You will do this archaeology yourself, in this context, and produce the report as your final assistant message.
+The user wants the *why* behind some code, not the *what*. Your job is to dispatch the `excavate:archaeologist` agent to mine the repo for structured findings, then synthesize those findings into a narrative provenance report.
 
-The plugin also ships an `excavate:archaeologist` agent with the same protocol — that's for users who want subagent isolation and invoke it directly via the Agent tool. The `/excavate` slash command does not route through that agent. It runs the protocol inline so the report surfaces naturally as your reply.
+The agent does the noisy work (50+ git/blame/grep calls in a clean subagent context). You do the judgment work (which inflections are real, what the velocity says, what's missing). The agent returns facts; you write the story.
 
 ## Argument
 
 `${ARGUMENTS}` — one of:
 
 - A **file path** (absolute or relative to cwd): `scripts/gate.sh`, `src/auth/middleware.ts`
-- A **symbol name**: `compute_cap`, `AuthMiddleware`, `useAuth` — resolve via LSP first
+- A **symbol name**: `compute_cap`, `AuthMiddleware`, `useAuth` — the agent resolves via LSP
 - A **commit SHA** (7+ chars): `7a4c1f0`, `abc123def`
 - A **GitHub PR URL**: `https://github.com/owner/repo/pull/42`
 - **Empty** — ask the user what they want excavated; offer the file they're currently looking at or recently edited as a default
 
-If the argument is ambiguous, make a reasonable guess and state your assumption in the report.
+If the argument is ambiguous, make a reasonable guess and state your assumption in the final report.
 
-## Investigation pattern
+## Dispatch
 
-You have `Bash`, `Read`, `Grep`, `Glob`, and `LSP`. Keep tool calls compact — you're synthesizing, not exploring blindly.
-
-**1. Resolve and locate.** If the input is a symbol, use `LSP` to resolve to a file+range first. This pairs with language-server plugins (gopls-lsp, etc.) — and triggers the excavate hook, which attaches a provenance digest to the LSP response, so you get a head start on the history before issuing a single git command.
-
-**2. Get the history.** Use `git` directly:
+Use the `Agent` tool with `subagent_type: "excavate:archaeologist"` and this prompt:
 
 ```
-git -C <repo> log --follow --no-merges --pretty=format:'%h %ad %an  %s%n%b' --date=short -- <path>
-git -C <repo> log --follow --reverse --pretty=format:'%h %ad %an  %s%n%b' --date=short -- <path> | head
-git -C <repo> blame -w -C -C --line-porcelain <path> | grep '^author ' | sort | uniq -c
+Collect archaeological findings for: ${ARGUMENTS}
+
+Repo root: <output of `git -C "$(pwd)" rev-parse --show-toplevel`>
+Working directory: <pwd>
+
+Return structured findings using the section headers in your protocol. Do not write a narrative report — that's my job.
 ```
 
-`--follow` tracks renames. `-w -C -C` makes blame robust to whitespace and code moves. `%b` includes commit message bodies — for solo-contributor repos, the bodies are the inline ADRs, so read them.
+The agent returns findings as markdown sections (`## resolved_target`, `## origin_commit`, `## inflection_candidates`, etc.). Read its full output before synthesizing.
 
-**3. Cross-reference documented intent.** Check whether CLAUDE.md, README.md, or an adjacent doc was touched in the same commits — that's literal documented rationale:
+## Synthesize
 
-```
-git -C <repo> log --follow --pretty=format:'%h %s' -- CLAUDE.md README.md
-```
+Take the agent's findings and write the narrative report below as your assistant message. This is the deliverable the user sees. Apply judgment — the agent gave you raw material; you pick what's load-bearing.
 
-**4. Look at related files.** Tests, sibling modules, and direct callers (via `Grep` for the symbol) help you understand what this code is *for*. Skip if not productive.
+Specifically:
 
-**5. Opportunistic remote enrichment.** Only if `gh auth status` succeeds and the repo's remote is GitHub:
+- **Origin** — from `origin_commit`. Quote the body's stated rationale. If absent or terse, say so plainly.
+- **Major decisions** — from `inflection_candidates`. Not all candidates are real inflections; pick 2–5 that actually bent the file's shape. Filter out routine refactors or rename-only commits. Each gets a SHA + date + one-sentence "why it mattered."
+- **Recent activity** — from `recent_commits` and `history_depth`. What's the velocity? Has it gone dormant? Is this an active area?
+- **Related code** — from `related_files`. Skip the section if the agent returned nothing useful.
+- **Open questions** — from `investigation_notes`, gaps in commit bodies, and anything the agent flagged as unavailable. Be honest. A short, accurate "open questions" beats a long fabricated one.
 
-```
-gh pr list --search 'sha:<short-sha>' --json number,title,body,url --state all
-gh issue view <number> --json title,body  # if a commit references an issue
-```
+If `gh_context` returned PR data, fold the PR summaries into Major decisions or Origin as appropriate. If `gh_context` was unavailable, mention that in Open questions (one line: "No GitHub remote / gh auth — PR context unavailable").
 
-If the repo has no remote, no GitHub remote, no PRs, or no `gh` auth — say so in the Open Questions section and move on. Do not fabricate a PR story.
+## Output format
 
-**6. Stop investigating when the picture is clear.** A 3-line file with two commits doesn't need a 20-tool-call investigation. Match effort to signal.
-
-## Output
-
-Your final assistant message is the report. It is the *only* output the user sees from /excavate — there is no separate "echo" step. Use this exact structure, in markdown, ≤ one page. Cite SHAs inline so the reader can verify.
+Markdown, ≤ one page. Cite SHAs inline. Your assistant message is the report:
 
 ```markdown
 # Provenance: <target>
@@ -66,25 +60,25 @@ Your final assistant message is the report. It is the *only* output the user see
 **Scope:** <file | symbol | commit | PR>  •  **Repo:** <name>  •  **History depth:** N commits, M authors
 
 ## Origin
-One paragraph. When introduced, by whom, in what commit (SHA), with the stated rationale from the commit body. If the rationale is absent or terse, say so plainly.
+One paragraph. When introduced, by whom, in what commit (SHA), with the stated rationale from the commit body. If the rationale is terse, say so.
 
 ## Major decisions
-The inflection points — not every commit, just the ones that bent the shape. Each as: `abc123 — short description (date)`, followed by one sentence of why it mattered. If there are no clear inflections, say "No major pivots — file has had only mechanical changes since origin."
+The inflection points. Each as: `abc123 — short description (date)`, followed by one sentence of why it mattered. If there are no clear inflections, say "No major pivots — file has had only mechanical changes since origin."
 
 ## Recent activity
-Last 2–4 changes, summarized. What's the velocity? Is this code being actively shaped, or stable?
+Last 2–4 changes summarized. Velocity. Active or stable?
 
 ## Related code
-Bulleted. Tests, sibling files, direct callers — with file:line. Skip the section if nothing useful.
+Bulleted. Tests, sibling files, direct callers — with file:line. Skip if nothing useful.
 
 ## Open questions
-What history *cannot* tell you. Undocumented constraints. Ambiguous renames. Decisions that left no trace. Be honest — a short, accurate "open questions" section is more valuable than a long fabricated one.
+What history *cannot* tell you. Be honest.
 ```
 
 ## Discipline
 
-- **Don't invent intent.** If a commit message says "fix bug," quote it and note the terseness. Don't speculate.
-- **Cite SHAs.** Every claim about a decision should reference the SHA that backs it.
-- **Be brutal about brevity.** A reader of this report wants to ship a change in the next hour — give them load-bearing facts only.
-- **State what's missing.** "No CLAUDE.md evolution touching this file" or "No GitHub remote available" is useful. Silence about gaps is misleading.
-- **Don't editorialize about code quality.** This is archaeology, not code review. Note what changed, don't grade it.
+- **Don't invent intent.** If a commit body says "fix bug," quote it and note the terseness. No speculation.
+- **Cite SHAs.** Every claim about a decision references its SHA.
+- **Be brutal about brevity.** Load-bearing facts only.
+- **Trust the agent's findings.** Don't re-run git commands the agent already ran. If the agent's findings are insufficient, note that in Open questions and move on.
+- **Don't editorialize about code quality.** This is archaeology, not code review.
